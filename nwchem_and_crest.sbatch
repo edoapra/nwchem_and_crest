@@ -11,7 +11,7 @@
 #SBATCH --mail-user edo@emsl.pnl.gov
 
 source /etc/profile.d/modules.sh
-set -ev
+#set -ev
 module purge
 module load gcc/9.3.0
 #module load python/3.8.1
@@ -64,6 +64,10 @@ export APPTAINERENV_OMP_NUM_THREADS=1
 export APPTAINERENV_PERMANENT_DIR=/big_scratch
 no_crestconf=$(wc -l crest.energies |cut -d " " -f 1)
 max_conf=$(( $no_crestconf < 20 ? $no_crestconf : 20 ))
+natp2=$(wc -l crest_best.xyz|cut -d ' ' -f 1)
+nat=$((natp2-2))
+max_rot=$(($(wc -l crest_rotamers.xyz|cut -d ' ' -f 1)/$natp2))
+
 echo max_conf is $max_conf
 cd ..
 rm -f ${mymolecule}_tab.txt || true
@@ -81,5 +85,19 @@ while [  $nn -le $max_conf ]; do
     echo "Conformer" $nn ":" $(grep l\ DF $conf_output |tail -1)  >> ${mymolecule}_tab.txt
     let nn=nn+1
 done
-#cat ${mymolecule}_tab.txt
-sort -r -t " " -k 8 < sort -r -t " " -k 8  ${mymolecule}_tab.txt
+sort -r -t " " -k 8  ${mymolecule}_tab.txt
+echo max_rot is $max_rot
+nn=1
+while [  $nn -le $max_rot ]; do
+    rotname=${mymolecule}_crest_rot${nn}
+    rot_input=${rotname}.nw
+    rot_output=${rotname}.output
+    rm -f $rot_input $rot_output
+    cat top >> $rot_input
+    echo load $crestdir/crest_rotamers.xyz frame ${nn} >> $rot_input
+    cat bot >> $rot_input
+    srun -n $SLURM_NPROCS  singularity exec $IMGNAME nwchem  $rot_input >& $rot_output
+    echo "Rotamer" $nn ":" $(grep l\ DF $rot_output |tail -1)  >> ${mymolecule}_rot_tab.txt
+    let nn=nn+1
+done
+sort -r -t " " -k 8  ${mymolecule}_rot_tab.txt
