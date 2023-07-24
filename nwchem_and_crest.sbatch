@@ -82,4 +82,4 @@ while [  $nn -le $max_conf ]; do
     let nn=nn+1
 done
 #cat ${mymolecule}_tab.txt
-sort -r -t " " -k 8 < sort -r -t " " -k 8 
+sort -r -t " " -k 8 < sort -r -t " " -k 8  ${mymolecule}_tab.txt

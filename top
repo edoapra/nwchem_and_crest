@@ -1,0 +1,5 @@
+echo
+start 
+memory stack 1500 mb heap 100 mb global 450 mb noverify
+
+geometry

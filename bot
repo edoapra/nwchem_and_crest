@@ -1,0 +1,20 @@
+end
+
+set quickguess t
+basis "ao basis" spherical
+* library def2-tzvp
+end
+dft
+adft
+print geometry
+xc xpbe96 cpbe96
+disp vdw 4
+vectors input atomic output tzp.mos
+convergence fast
+end
+set int:cando_nw f
+set int:cando_txs f
+driver
+ xyz
+end
+task dft optimize ignore
